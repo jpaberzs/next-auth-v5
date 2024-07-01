@@ -23,6 +23,7 @@ export default {
           if (!passwordMatch) {
             return null;
           }
+
           return user;
         }
 
