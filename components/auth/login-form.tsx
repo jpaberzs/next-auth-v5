@@ -19,8 +19,15 @@ import { LoginSchema } from '@/schemas';
 import ErrorForm from '@/components/error-form';
 import SuccessForm from '@/components/success-form';
 import { login } from '@/actions/login';
+import { useSearchParams } from 'next/navigation';
 
 const LoginForm = () => {
+  const searchParams = useSearchParams();
+  const urlError =
+    searchParams.get('error') === 'OAuthAccountNotLinked'
+      ? 'Email already use with another provider'
+      : '';
+
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
@@ -90,7 +97,7 @@ const LoginForm = () => {
               />
             </FormItem>
           </div>
-          <ErrorForm message={error} />
+          <ErrorForm message={error || urlError} />
           <SuccessForm message={success} />
           <Button type="submit" className="w-full" disabled={isPending}>
             Login
