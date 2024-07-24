@@ -5,10 +5,12 @@ import authConfig from '@/auth.config';
 import { getUserByID } from '@/data/user';
 import { UserRole } from '@prisma/client';
 import { getTwoFactorConfirmationByUserId } from '@/data/two-factor-confirmation';
+import { getAccountByUserId } from './data/account';
 
 export type ExtendedUser = DefaultSession['user'] & {
   role: UserRole;
   isTwoFactorEnabled: boolean;
+  isOAuth: boolean;
 };
 
 declare module 'next-auth' {
@@ -49,8 +51,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           return false;
         }
 
-        // TODO: Delete two factor confirmation for next sign in
-
         await db.twoFactorConfirmation.delete({
           where: { id: twoFactorConfirmation.id },
         });
@@ -65,6 +65,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       if (!existingUser) return token;
 
+      const existingAccount = await getAccountByUserId(existingUser.id);
+
+      token.isOAuth = !!existingAccount;
+      token.name = existingUser.name;
+      token.email = existingUser.email;
       token.role = existingUser.role;
       token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
 
@@ -81,6 +86,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       if (session.user) {
         session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
+      }
+
+      if (session.user && token.email) {
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.isOAuth = token.isOAuth as boolean;
       }
 
       return session;

@@ -95,7 +95,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
         case 'CredentialsSignin':
           return { error: 'Invalid Credentials', success: '' };
         case 'CallbackRouteError':
-          return { error: `Callback Route Error`, success: '' };
+          return { error: `Invalid Credentials`, success: '' };
         default:
           return { error: 'An unexpected error occurred', success: '' };
       }
